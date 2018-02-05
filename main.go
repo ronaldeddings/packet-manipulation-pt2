@@ -18,7 +18,6 @@ var (
 	handle *pcap.Handle
 )
 
-
 func main() {
 	handle, err = pcap.OpenLive(device,snaplen,promisc,timeout)
 	if err != nil {
@@ -32,7 +31,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-
 	packetSource := gopacket.NewPacketSource(handle,handle.LinkType())
 
 	for packet := range packetSource.Packets() {
@@ -41,8 +39,7 @@ func main() {
 		ip_layer := packet.Layer(layers.LayerTypeIPv4)
 		ip_packet, _ := ip_layer.(*layers.IPv4)
 		icmp_layer := packet.Layer(layers.LayerTypeICMPv4)
-		icmp_packet,_ := icmp_layer.(*layers.ICMPv4)
-
+		icmp_packet := icmp_layer.(*layers.ICMPv4)
 
 		if icmp_packet.TypeCode.String() == "EchoRequest" {
 			if len(icmp_packet.Payload) > 0 {
@@ -72,26 +69,28 @@ func main() {
 					&icmp_packet_copy,
 					gopacket.Payload(icmp_packet_copy.Payload),
 				)
-				new_message := buffer.Bytes()
 
+				new_message := buffer.Bytes()
 				err = handle.WritePacketData(new_message)
 				if err != nil {
 					log.Fatal(err)
 				}
 			}
 
-			fmt.Println("----------")
-			fmt.Println("Source Address: " + ip_packet.SrcIP.String())
-			fmt.Println("Destination Address: " + ip_packet.DstIP.String())
-			fmt.Println("Protocol: ", ip_packet.Protocol)
-			fmt.Println("----------")
-
-			fmt.Println("ICMP Code: ", icmp_packet.TypeCode)
-			fmt.Println("ICMP Sequence Number: ",icmp_packet.Seq)
-			fmt.Println("Payload data length",len(icmp_packet.Payload))
-			fmt.Println("Payload data: ",icmp_packet.Payload)
-			fmt.Println("Payload data to string: ",string(icmp_packet.Payload))
-			fmt.Println("----------\n")
 		}
+
+		fmt.Println("----------")
+		fmt.Println("Source Address: " + ip_packet.SrcIP.String())
+		fmt.Println("Destination Address: " + ip_packet.DstIP.String())
+		fmt.Println("Protocol: ", ip_packet.Protocol)
+		fmt.Println("----------")
+
+		fmt.Println("ICMP Code: ", icmp_packet.TypeCode)
+		fmt.Println("ICMP Sequence Number: ",icmp_packet.Seq)
+		fmt.Println("Payload data length",len(icmp_packet.Payload))
+		fmt.Println("Payload data: ",icmp_packet.Payload)
+		fmt.Println("Payload data to string: ",string(icmp_packet.Payload))
+		fmt.Println("----------\n")
+
 	}
 }
